@@ -8,7 +8,6 @@
 
 | Selección de Planta | Medición en Tiempo Real | Resultado / Consejo |
 | :---- | :---- | :---- |
-| *\[Inserta aquí captura 1\]* | *\[Inserta aquí captura 2\]* | *\[Inserta aquí captura 3\]* |
 | *Menú desplegable* | *Lectura de Lux* | *Feedback visual* |
 
 ## **✨ Características Principales**
