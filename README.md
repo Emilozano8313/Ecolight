@@ -32,8 +32,7 @@
 Sigue estos pasos para clonar y ejecutar el proyecto localmente:
 
 1. **Clonar el repositorio:**  
-   git clone \[https://github.com/tu-usuario/EcoLight.git\](https://github.com/tu-usuario/EcoLight.git)
-
+   git clone (https://github.com/Emilozano8313/Ecolight.git)
 2. **Abrir en Android Studio:**  
    * Abre Android Studio.  
    * Selecciona Open y navega a la carpeta clonada.  
@@ -75,4 +74,4 @@ Sigue estos pasos para clonar y ejecutar el proyecto localmente:
 
 Este proyecto está bajo la Licencia MIT \- mira el archivo LICENSE.md para más detalles.
 
-Hecho con 💚 y ☀️ por \[Tu Nombre\]
+Hecho por RDE
