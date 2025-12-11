@@ -52,6 +52,14 @@ dependencies {
 
     // ViewModel para Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    // Retrofit para API
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
+    // Navegación
+    implementation(libs.androidx.navigation.compose)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
