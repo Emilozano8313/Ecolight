@@ -25,7 +25,7 @@ object RetrofitClient {
      *
      * La URL debe terminar con "/" (barra diagonal)
      */
-    private const val BASE_URL = "https://693a225bc8d59937aa09e48e.mockapi.io/api/v1/"
+    private const val BASE_URL = "https://693a225bc8d59937aa09e48e.mockapi.io/"
 
     /**
      * Instancia de Retrofit configurada
