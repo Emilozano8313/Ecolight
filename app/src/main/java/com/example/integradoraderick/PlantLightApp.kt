@@ -98,7 +98,8 @@ fun PlantLightApp(
             // Pantalla de inicio (medidor de luz)
             composable(Screen.Home.route) {
                 HomeScreen(
-                    viewModel = lightViewModel
+                    viewModel = lightViewModel,
+                    plantViewModel = plantViewModel
                 )
             }
 
@@ -167,7 +168,6 @@ private fun PlantLightBottomNavigation(
                     }
                 }
             )
+            }
         }
-    }
 }
-
