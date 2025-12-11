@@ -14,20 +14,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -40,13 +47,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.integradoraderick.data.model.LightMeasurement
+import com.example.integradoraderick.data.model.defaultPlants
 import com.example.integradoraderick.ui.components.MeasurementItem
 import com.example.integradoraderick.ui.theme.IntegradoraDerickTheme
 import com.example.integradoraderick.viewmodel.PlantViewModel
@@ -73,6 +81,9 @@ fun HistoryScreen(
 
     // Estado para el diálogo de confirmación de eliminación
     var measurementToDelete by remember { mutableStateOf<LightMeasurement?>(null) }
+
+    // Estado para el diálogo de edición
+    var measurementToEdit by remember { mutableStateOf<LightMeasurement?>(null) }
 
     // Snackbar para mensajes
     val snackbarHostState = remember { SnackbarHostState() }
@@ -153,7 +164,7 @@ fun HistoryScreen(
                     else -> {
                         MeasurementsList(
                             measurements = measurements,
-                            onEdit = onEditMeasurement,
+                            onEdit = { measurementToEdit = it },
                             onDelete = { measurementToDelete = it }
                         )
                     }
@@ -176,6 +187,18 @@ fun HistoryScreen(
                     measurementToDelete = null
                 },
                 onDismiss = { measurementToDelete = null }
+            )
+        }
+
+        // Diálogo de edición
+        measurementToEdit?.let { measurement ->
+            EditMeasurementDialog(
+                measurement = measurement,
+                onConfirm = { editedMeasurement ->
+                    viewModel.updateMeasurement(editedMeasurement)
+                    measurementToEdit = null
+                },
+                onDismiss = { measurementToEdit = null }
             )
         }
     }
@@ -393,6 +416,152 @@ private fun DeleteConfirmationDialog(
 }
 
 /**
+ * Diálogo para editar una medición
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EditMeasurementDialog(
+    measurement: LightMeasurement,
+    onConfirm: (LightMeasurement) -> Unit,
+    onDismiss: () -> Unit
+) {
+    // Estados editables
+    var luxValue by remember { mutableStateOf(measurement.luxValue.toString()) }
+    var selectedPlantName by remember { mutableStateOf(measurement.plantName) }
+    var isOptimal by remember { mutableStateOf(measurement.isOptimal) }
+    var location by remember { mutableStateOf(measurement.location) }
+    var dropdownExpanded by remember { mutableStateOf(false) }
+
+    // Lista de plantas disponibles
+    val plantOptions = listOf("General") + defaultPlants.map { it.name }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        title = {
+            Text(text = "Editar medición")
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Campo de Lux
+                OutlinedTextField(
+                    value = luxValue,
+                    onValueChange = { newValue ->
+                        // Solo permitir números
+                        if (newValue.isEmpty() || newValue.all { it.isDigit() }) {
+                            luxValue = newValue
+                        }
+                    },
+                    label = { Text("Valor de luz (lux)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Dropdown de planta
+                ExposedDropdownMenuBox(
+                    expanded = dropdownExpanded,
+                    onExpandedChange = { dropdownExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedPlantName,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Planta") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false }
+                    ) {
+                        plantOptions.forEach { plantName ->
+                            val emoji = when (plantName) {
+                                "Suculenta" -> "🪴"
+                                "Pothos" -> "🌿"
+                                "Helecho" -> "🌾"
+                                "Sansevieria" -> "🌵"
+                                "Cactus" -> "🌵"
+                                else -> "☀"
+                            }
+                            DropdownMenuItem(
+                                text = { Text("$emoji $plantName") },
+                                onClick = {
+                                    selectedPlantName = plantName
+                                    dropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Campo de ubicación
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = { location = it },
+                    label = { Text("Ubicación (opcional)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Switch de óptimo
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "¿Luz óptima?",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Switch(
+                        checked = isOptimal,
+                        onCheckedChange = { isOptimal = it }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val updatedMeasurement = measurement.copy(
+                        luxValue = luxValue.toIntOrNull() ?: measurement.luxValue,
+                        plantName = selectedPlantName,
+                        isOptimal = isOptimal,
+                        location = location
+                    )
+                    onConfirm(updatedMeasurement)
+                },
+                enabled = luxValue.isNotEmpty() && luxValue.toIntOrNull() != null
+            ) {
+                Text(
+                    text = "Guardar",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "Cancelar")
+            }
+        }
+    )
+}
+
+/**
  * Vista previa de la pantalla
  */
 @Preview(showBackground = true)
@@ -425,4 +594,3 @@ fun HistoryScreenPreview() {
         }
     }
 }
-
